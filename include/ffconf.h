@@ -69,7 +69,11 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
+#if defined(CONFIG_FS_FATFS_CODEPAGE)
+#define _CODE_PAGE	CONFIG_FS_FATFS_CODEPAGE
+#else
 #define _CODE_PAGE	1
+#endif
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect setting of the code page can cause a file open failure.
 /
@@ -97,9 +101,24 @@
 /   950 - Traditional Chinese (DBCS)
 */
 
-
+#if defined(CONFIG_FS_FATFS_LFN)
+#if CONFIG_FS_FATFS_LFN_MODE_BSS
+#define	_USE_LFN	1
+#elif CONFIG_FS_FATFS_LFN_MODE_STACK
+#define	_USE_LFN	2
+#elif CONFIG_FS_FATFS_LFN_MODE_HEAP
+#define	_USE_LFN	3
+#else
+#error Invalid LFN buffer location
+#endif /* CONFIG_FS_FATFS_LFN_MODE_BSS */
+#else
 #define	_USE_LFN	0
+#endif /* defined(CONFIG_FS_FATFS_LFN) */
+#if defined(CONFIG_FS_FATFS_MAX_LFN)
+#define	_MAX_LFN	CONFIG_FS_FATFS_MAX_LFN
+#else
 #define	_MAX_LFN	255
+#endif /* defined(CONFIG_FS_FATFS_MAX_LFN) */
 /* The _USE_LFN switches the support of long file name (LFN).
 /
 /   0: Disable support of LFN. _MAX_LFN has no effect.
