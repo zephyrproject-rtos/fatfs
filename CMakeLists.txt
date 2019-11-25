@@ -9,6 +9,10 @@ zephyr_library_sources(
     ff.c
     zfs_diskio.c
     )
+zephyr_library_sources_ifdef(CONFIG_FS_FATFS_LFN
+    option/unicode.c
+    option/syscall.c
+)
 zephyr_library_link_libraries(ELMFAT)
 target_link_libraries(ELMFAT INTERFACE zephyr_interface)
 endif()

@@ -3,7 +3,7 @@
 /* CP950 (Traditional Chinese Big5)                                       */
 /*------------------------------------------------------------------------*/
 
-#include "../ff.h"
+#include "ff.h"
 
 
 #if !_USE_LFN || _CODE_PAGE != 950

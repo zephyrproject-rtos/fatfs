@@ -15,3 +15,8 @@ _USE_MKFS	1
 _CODE_PAGE	1
 _FS_TINY	1
 _FS_NORTC	1
+
+The following configurations are exposed as kconfig options.
+_USE_LFN
+_MAX_LFN
+_CODE_PAGE
