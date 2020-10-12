@@ -97,7 +97,8 @@ DRESULT disk_write(BYTE pdrv, const BYTE *buff, DWORD sector, UINT count)
 
 DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
 {
-	int ret =  RES_OK;
+	int ret = RES_OK;
+	uint32_t sector_size = 0;
 
 	__ASSERT(pdrv < ARRAY_SIZE(pdrv_str), "pdrv out-of-range\n");
 
@@ -113,7 +114,21 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
 		if (disk_access_ioctl(pdrv_str[pdrv],
 				DISK_IOCTL_GET_SECTOR_COUNT, buff) != 0) {
 			ret = RES_ERROR;
-                }
+		}
+		break;
+
+	case GET_SECTOR_SIZE:
+		/* Zephyr's DISK_IOCTL_GET_SECTOR_SIZE returns sector size as a
+		 * 32-bit number while FatFS's GET_SECTOR_SIZE is supposed to
+		 * return a 16-bit number.
+		 */
+		if ((disk_access_ioctl(pdrv_str[pdrv],
+				DISK_IOCTL_GET_SECTOR_SIZE, &sector_size) == 0) &&
+			(sector_size == (uint16_t)sector_size)) {
+			*(uint16_t *)buff = (uint16_t)sector_size;
+		} else {
+			ret = RES_ERROR;
+		}
 		break;
 
 	case GET_BLOCK_SIZE:
