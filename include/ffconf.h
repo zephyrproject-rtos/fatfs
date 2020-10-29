@@ -174,7 +174,11 @@
 / Drive/Volume Configurations
 /---------------------------------------------------------------------------*/
 
+#if defined(CONFIG_FS_FATFS_VOLUMES)
+#define _VOLUMES	CONFIG_FS_FATFS_VOLUMES
+#else
 #define _VOLUMES	8
+#endif
 /* Number of volumes (logical drives) to be used. */
 
 
