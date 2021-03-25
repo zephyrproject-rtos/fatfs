@@ -4312,7 +4312,7 @@ FRESULT f_stat (
 
 FRESULT f_getfree (
 	const TCHAR* path,	/* Path name of the logical drive number */
-	DWORD* nclst,		/* Pointer to a variable to return number of free clusters */
+	long unsigned int *pnclst,		/* Pointer to a variable to return number of free clusters */
 	FATFS** fatfs		/* Pointer to return pointer to corresponding file system object */
 )
 {
@@ -4322,7 +4322,7 @@ FRESULT f_getfree (
 	UINT i;
 	BYTE *p;
 	_FDID obj;
-
+	DWORD* nclst = (DWORD*)pnclst;
 
 	/* Get logical drive */
 	res = find_volume(&path, &fs, 0);
