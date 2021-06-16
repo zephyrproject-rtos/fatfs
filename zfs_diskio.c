@@ -25,11 +25,12 @@
 / by use of this software.
 /----------------------------------------------------------------------------*/
 
+#include <ff.h>
 #include <diskio.h>	/* FatFs lower layer API */
 #include <ffconf.h>
 #include <disk/disk_access.h>
 
-static const char* const pdrv_str[] = {_VOLUME_STRS};
+static const char* const pdrv_str[] = {FF_VOLUME_STRS};
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
