@@ -253,6 +253,16 @@
 /  disk_ioctl() function. */
 
 
+#if defined(CONFIG_FS_FATFS_WINDOW_ALIGNMENT)
+#define FS_FATFS_WINDOW_ALIGNMENT	CONFIG_FS_FATFS_WINDOW_ALIGNMENT
+#else
+#define FS_FATFS_WINDOW_ALIGNMENT	1
+#endif /* defined(CONFIG_FS_FATFS_WINDOW_ALIGNMENT) */
+/* This option is to align FATFS->win variable to meet the mmc controller requirement,
+ * such as designware mmc controller. Aligning the WINDOW variable with 512 will
+ * drastically increase the size of the FATFS structure*/
+
+
 
 /*---------------------------------------------------------------------------/
 / System Configurations
