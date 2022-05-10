@@ -28,7 +28,7 @@
 #include <ff.h>
 #include <diskio.h>	/* FatFs lower layer API */
 #include <ffconf.h>
-#include <storage/disk_access.h>
+#include <zephyr/storage/disk_access.h>
 
 static const char* const pdrv_str[] = {FF_VOLUME_STRS};
 
