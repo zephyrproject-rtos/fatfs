@@ -296,6 +296,18 @@
 /  SemaphoreHandle_t and etc. A header file for O/S definitions needs to be
 /  included somewhere in the scope of ff.h. */
 
-
+/* Zephyr specific configuration override */
+/* The ZEPHYR_CONFIG_OVERRIDE should be given header file name that will contain
+/  series of undefs and redefinitions of the FF_ identifiers from the ffconf.h
+/  it needs to override
+*/
+#ifdef ZEPHYR_CONFIG_OVERRIDE
+#define STRINGIZE_AGAIN(x) #x
+#define STRINGIZE(x) STRINGIZE_AGAIN(x)
+#include STRINGIZE(ZEPHYR_CONFIG_OVERRIDE)
+#undef STRINGIZE
+#undef STRINGIZE_AGAIN
+#endif
+/* End of Zephyr specific configuration override */
 
 /*--- End of configuration options ---*/
