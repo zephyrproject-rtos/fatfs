@@ -8,15 +8,12 @@
 / Function Configurations
 /---------------------------------------------------------------------------*/
 
-#if defined(CONFIG_FS_FATFS_READ_ONLY)
-#define FF_FS_READONLY	CONFIG_FS_FATFS_READ_ONLY
-#else
 #define FF_FS_READONLY	0
-#endif
 /* This option switches read-only configuration. (0:Read/Write or 1:Read-only)
 /  Read-only configuration removes writing API functions, f_write(), f_sync(),
 /  f_unlink(), f_mkdir(), f_chmod(), f_rename(), f_truncate(), f_getfree()
 /  and optional writing functions as well. */
+
 
 #define FF_FS_MINIMIZE	0
 /* This option defines minimization level to remove some basic API functions.
@@ -33,11 +30,7 @@
 /  f_findnext(). (0:Disable, 1:Enable 2:Enable with matching altname[] too) */
 
 
-#if defined(CONFIG_FS_FATFS_MKFS)
-#define FF_USE_MKFS	CONFIG_FS_FATFS_MKFS
-#else
-#define FF_USE_MKFS	1
-#endif
+#define FF_USE_MKFS		0
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 
 
@@ -91,11 +84,7 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#if defined(CONFIG_FS_FATFS_CODEPAGE)
-#define FF_CODE_PAGE	CONFIG_FS_FATFS_CODEPAGE
-#else
-#define FF_CODE_PAGE	437
-#endif
+#define FF_CODE_PAGE	932
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect code page setting can cause a file open failure.
 /
@@ -123,25 +112,10 @@
 /     0 - Include all code pages above and configured by f_setcp()
 */
 
-#if defined(CONFIG_FS_FATFS_LFN)
-#if CONFIG_FS_FATFS_LFN_MODE_BSS
-#define	FF_USE_LFN	1
-#elif CONFIG_FS_FATFS_LFN_MODE_STACK
-#define	FF_USE_LFN	2
-#elif CONFIG_FS_FATFS_LFN_MODE_HEAP
-#define	FF_USE_LFN	3
-#else
-#error Invalid LFN buffer location
-#endif /* CONFIG_FS_FATFS_LFN_MODE_BSS */
-#else
-#define	FF_USE_LFN	0
-#endif /* defined(CONFIG_FS_FATFS_LFN) */
-#if defined(CONFIG_FS_FATFS_MAX_LFN)
-#define	FF_MAX_LFN	CONFIG_FS_FATFS_MAX_LFN
-#else
-#define	FF_MAX_LFN	255
-#endif /* defined(CONFIG_FS_FATFS_MAX_LFN) */
-/* The FF_USE_LFN switches the support of long file name (LFN).
+
+#define FF_USE_LFN		0
+#define FF_MAX_LFN		255
+/* The FF_USE_LFN switches the support for LFN (long file name).
 /
 /   0: Disable LFN. FF_MAX_LFN has no effect.
 /   1: Enable LFN with static  working buffer on the BSS. Always NOT thread-safe.
@@ -192,15 +166,11 @@
 / Drive/Volume Configurations
 /---------------------------------------------------------------------------*/
 
-#if defined(CONFIG_FS_FATFS_VOLUMES)
-#define FF_VOLUMES	CONFIG_FS_FATFS_VOLUMES
-#else
-#define FF_VOLUMES	8
-#endif
-/* Number of volumes (logical drives) to be used. */
+#define FF_VOLUMES		1
+/* Number of volumes (logical drives) to be used. (1-10) */
 
 
-#define FF_STR_VOLUME_ID	1
+#define FF_STR_VOLUME_ID	0
 #define FF_VOLUME_STRS		"RAM","NAND","CF","SD","SD2","USB","USB2","USB3"
 /* FF_STR_VOLUME_ID switches support for volume ID in arbitrary strings.
 /  When FF_STR_VOLUME_ID is set to 1 or 2, arbitrary strings can be used as drive
@@ -224,11 +194,7 @@
 
 
 #define FF_MIN_SS		512
-#if defined(CONFIG_FS_FATFS_MAX_SS)
-#define FF_MAX_SS		CONFIG_FS_FATFS_MAX_SS
-#else
-#define	FF_MAX_SS		512
-#endif /* defined(CONFIG_FS_FATFS_MAX_SS) */
+#define FF_MAX_SS		512
 /* This set of options configures the range of sector size to be supported. (512,
 /  1024, 2048 or 4096) Always set both 512 for most systems, generic memory card and
 /  harddisk, but a larger value may be required for on-board flash memory and some
@@ -253,39 +219,25 @@
 /  disk_ioctl() function. */
 
 
-#if defined(CONFIG_FS_FATFS_WINDOW_ALIGNMENT)
-#define FS_FATFS_WINDOW_ALIGNMENT	CONFIG_FS_FATFS_WINDOW_ALIGNMENT
-#else
-#define FS_FATFS_WINDOW_ALIGNMENT	1
-#endif /* defined(CONFIG_FS_FATFS_WINDOW_ALIGNMENT) */
-/* This option is to align FATFS->win variable to meet the mmc controller requirement,
- * such as designware mmc controller. Aligning the WINDOW variable with 512 will
- * drastically increase the size of the FATFS structure*/
-
-
 
 /*---------------------------------------------------------------------------/
 / System Configurations
 /---------------------------------------------------------------------------*/
 
-#define FF_FS_TINY		1
+#define FF_FS_TINY		0
 /* This option switches tiny buffer configuration. (0:Normal or 1:Tiny)
 /  At the tiny configuration, size of file object (FIL) is shrinked FF_MAX_SS bytes.
 /  Instead of private sector buffer eliminated from the file object, common sector
 /  buffer in the filesystem object (FATFS) is used for the file data transfer. */
 
 
-#if defined(CONFIG_FS_FATFS_EXFAT)
-#define FF_FS_EXFAT		CONFIG_FS_FATFS_EXFAT
-#else
 #define FF_FS_EXFAT		0
-#endif
 /* This option switches support for exFAT filesystem. (0:Disable or 1:Enable)
 /  To enable exFAT, also LFN needs to be enabled. (FF_USE_LFN >= 1)
 /  Note that enabling exFAT discards ANSI C (C89) compatibility. */
 
 
-#define FF_FS_NORTC		1
+#define FF_FS_NORTC		0
 #define FF_NORTC_MON	1
 #define FF_NORTC_MDAY	1
 #define FF_NORTC_YEAR	2020
