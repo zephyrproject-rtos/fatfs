@@ -291,11 +291,11 @@
 /  The FF_FS_TIMEOUT defines timeout period in unit of O/S time tick.
 */
 #ifdef ZEPHYR_CONFIG_OVERRIDE
-#define STRINGIZE_AGAIN(x) #x
-#define STRINGIZE(x) STRINGIZE_AGAIN(x)
-#include STRINGIZE(ZEPHYR_CONFIG_OVERRIDE)
-#undef STRINGIZE
-#undef STRINGIZE_AGAIN
+#define FFCONF_STRINGIZE_AGAIN(x) #x
+#define FFCONF_STRINGIZE(x) FFCONF_STRINGIZE_AGAIN(x)
+#include FFCONF_STRINGIZE(ZEPHYR_CONFIG_OVERRIDE)
+#undef FFCONF_STRINGIZE
+#undef FFCONF_STRINGIZE_AGAIN
 #endif
 /* End of Zephyr specific configuration override */
 
