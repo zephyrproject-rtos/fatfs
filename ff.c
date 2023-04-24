@@ -477,7 +477,13 @@ static BYTE SysLock;				/* System lock flag (0:no mutex, 1:unlocked, 2:locked) *
 
 #if FF_STR_VOLUME_ID
 #ifdef FF_VOLUME_STRS
+#ifdef CONFIG_FF_VOLUME_STRS_OVERRIDE
+char *VolumeStr[FF_VOLUMES];
+static char VolumeStrs[] = FF_VOLUME_STRS;
+static bool VolumeStrsParsed = false;
+#else
 static const char *const VolumeStr[FF_VOLUMES] = {FF_VOLUME_STRS};	/* Pre-defined volume ID */
+#endif
 #endif
 #endif
 
@@ -3130,6 +3136,46 @@ static FRESULT follow_path (	/* FR_OK(0): successful, !=0: error code */
 
 
 
+#if defined(CONFIG_FF_VOLUME_STRS_OVERRIDE)
+static void parse_volume_strs(void)
+{
+	int i, j;
+
+	if (VolumeStrsParsed) {
+		return;
+	}
+
+	for (i = 0, j = 0; i < FF_VOLUMES; i++) {
+		int v_start = j;
+		char sc;
+
+		do {
+			sc = VolumeStrs[j++];
+		} while(sc != '\0' && sc != ';');
+
+		if (v_start == j-1) {
+			i--; /* still looking for a name */
+			continue;
+		}
+
+		VolumeStr[i] = &VolumeStrs[v_start];
+
+		if (sc == '\0') {
+			break;
+		}
+
+		VolumeStrs[j-1] = '\0'; /* Switching ; to \0 */
+	}
+
+	if (i < FF_VOLUMES) {
+		VolumeStr[i] = NULL;
+	}
+
+	VolumeStrsParsed = true;
+}
+#endif /* CONFIG_FF_VOLUME_STRS_OVERRIDE */
+
+
 
 /*-----------------------------------------------------------------------*/
 /* Get logical drive number from path name                               */
@@ -3149,6 +3195,10 @@ static int get_ldnumber (	/* Returns logical drive number (-1:invalid drive numb
 	char c;
 #endif
 
+#if defined(CONFIG_FF_VOLUME_STRS_OVERRIDE)
+	parse_volume_strs();
+#endif
+
 	tt = tp = *path;
 	if (!tp) return vol;	/* Invalid path name? */
 	do {					/* Find a colon in the path */
@@ -3165,6 +3215,12 @@ static int get_ldnumber (	/* Returns logical drive number (-1:invalid drive numb
 			i = 0;
 			do {
 				sp = VolumeStr[i]; tp = *path;	/* This string volume ID and path name */
+#if defined(CONFIG_FF_VOLUME_STRS_OVERRIDE)
+				if (sp == NULL) {
+					i = FF_VOLUMES;
+					break;
+				}
+#endif /* CONFIG_FF_VOLUME_STRS_OVERRIDE */
 				do {	/* Compare the volume ID with path name */
 					c = *sp++; tc = *tp++;
 					if (IsLower(c)) c -= 0x20;
@@ -3185,6 +3241,12 @@ static int get_ldnumber (	/* Returns logical drive number (-1:invalid drive numb
 		i = 0;
 		do {
 			tt = tp; sp = VolumeStr[i]; /* Path name and this string volume ID */
+#if defined(CONFIG_FF_VOLUME_STRS_OVERRIDE)
+			if (sp == NULL) {
+				i = FF_VOLUMES;
+				break;
+			}
+#endif /* CONFIG_FF_VOLUME_STRS_OVERRIDE */
 			do {	/* Compare the volume ID with path name */
 				c = *sp++; tc = *(++tt);
 				if (IsLower(c)) c -= 0x20;
@@ -7081,4 +7143,3 @@ FRESULT f_setcp (
 	return FR_OK;
 }
 #endif	/* FF_CODE_PAGE == 0 */
-
