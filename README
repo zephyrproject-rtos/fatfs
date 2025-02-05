@@ -6,6 +6,6 @@ an interface to physical storage management through its disk io
 API in diskio.c. The disk io interfaces are updated to interface
 with Zephyr flash memory management.
 
-Current revision in the tree is 0.15
+Current revision in the tree is 0.15a
 
-URL to current version: http://elm-chan.org/fsw/ff/arc/ff15.zip
+URL to current version: http://elm-chan.org/fsw/ff/arc/ff15a.zip
