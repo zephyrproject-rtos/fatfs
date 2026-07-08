@@ -4553,6 +4553,73 @@ FRESULT f_getcwd (
 
 
 #if FF_FS_MINIMIZE <= 2
+#if !FF_FS_READONLY
+/*-----------------------------------------------------------------------*/
+/* Zero a newly exposed region of a file                                 */
+/*-----------------------------------------------------------------------*/
+/* Fill file data bytes [start, end) with zeros so that growing a file with   */
+/* f_lseek() never lets a later f_read() return residual on-disk data         */
+/* (CVE-2026-6686). The cluster chain covering the range must already be       */
+/* allocated. Bytes outside [start, end) within a boundary sector are kept.    */
+
+static FRESULT fill_zero (
+	FIL* fp,		/* Open file object */
+	FSIZE_t start,	/* First byte to clear */
+	FSIZE_t end		/* One past the last byte to clear */
+)
+{
+	FATFS *fs = fp->obj.fs;
+	DWORD clst, csz, skip;
+	LBA_t sect;
+	FSIZE_t pos;
+	UINT off, cnt;
+
+	if (start >= end) return FR_OK;
+	csz = (DWORD)fs->csize * SS(fs);				/* Cluster size (byte) */
+
+	clst = fp->obj.sclust;							/* Follow the chain to the cluster holding `start` */
+	if (clst < 2 || clst >= fs->n_fatent) return FR_INT_ERR;
+	for (skip = (DWORD)(start / csz); skip != 0; skip--) {
+		clst = get_fat(&fp->obj, clst);
+		if (clst == 0xFFFFFFFF) return FR_DISK_ERR;
+		if (clst < 2 || clst >= fs->n_fatent) return FR_INT_ERR;
+	}
+
+	for (pos = start; pos < end; ) {
+		sect = clst2sect(fs, clst) + (UINT)((pos / SS(fs)) & (fs->csize - 1));	/* Sector holding `pos` */
+		if (sect == 0) return FR_INT_ERR;
+		off = (UINT)(pos % SS(fs));					/* Offset in the sector */
+		cnt = SS(fs) - off;							/* Bytes to clear in this sector */
+		if ((FSIZE_t)cnt > end - pos) cnt = (UINT)(end - pos);
+#if FF_FS_TINY
+		if (move_window(fs, sect) != FR_OK) return FR_DISK_ERR;
+		memset(fs->win + off, 0, cnt);
+		fs->wflag = 1;
+#else
+		if (fp->sect != sect) {						/* Bring the sector into the file cache */
+			if (fp->flag & FA_DIRTY) {				/* Write back a dirty cache first */
+				if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK) return FR_DISK_ERR;
+				fp->flag &= (BYTE)~FA_DIRTY;
+			}
+			if ((off != 0 || cnt != SS(fs))			/* Preserve neighbouring bytes of a partial sector */
+				&& disk_read(fs->pdrv, fp->buf, sect, 1) != RES_OK) return FR_DISK_ERR;
+			fp->sect = sect;
+		}
+		memset(fp->buf + off, 0, cnt);
+		fp->flag |= FA_DIRTY;
+#endif
+		pos += cnt;
+		if (pos < end && (pos % csz) == 0) {		/* Step to the next cluster at a boundary */
+			clst = get_fat(&fp->obj, clst);
+			if (clst == 0xFFFFFFFF) return FR_DISK_ERR;
+			if (clst < 2 || clst >= fs->n_fatent) return FR_INT_ERR;
+		}
+	}
+	return FR_OK;
+}
+#endif	/* !FF_FS_READONLY */
+
+
 /*-----------------------------------------------------------------------*/
 /* API: Seek File Read/Write Pointer                                     */
 /*-----------------------------------------------------------------------*/
@@ -4636,6 +4703,7 @@ FRESULT f_lseek (
 
 	/* Normal Seek */
 	{
+		FSIZE_t oldsize = fp->obj.objsize;	/* File size before this seek, for zero-fill on extend [CVE-2026-6686] */
 #if FF_FS_EXFAT
 		if (fs->fs_type != FS_EXFAT && ofs >= 0x100000000) ofs = 0xFFFFFFFF;	/* Clip at 4 GiB - 1 if at FATxx */
 #endif
@@ -4693,10 +4761,13 @@ FRESULT f_lseek (
 				}
 			}
 		}
-		if (!FF_FS_READONLY && fp->fptr > fp->obj.objsize) {	/* Set file change flag if the file size is extended */
-			fp->obj.objsize = fp->fptr;
+#if !FF_FS_READONLY
+		if (fp->fptr > oldsize) {	/* File size extended (implies FA_WRITE, as ofs is clipped to objsize otherwise) */
+			if (fill_zero(fp, oldsize, fp->fptr) != FR_OK) ABORT(fs, FR_DISK_ERR);	/* Zero the newly exposed range so f_read cannot disclose residual on-disk data [CVE-2026-6686] */
+			fp->obj.objsize = fp->fptr;	/* Set file change flag if the file size is extended */
 			fp->flag |= FA_MODIFIED;
 		}
+#endif
 		if (fp->fptr % SS(fs) && nsect != fp->sect) {	/* Fill sector cache if needed */
 #if !FF_FS_TINY
 #if !FF_FS_READONLY
