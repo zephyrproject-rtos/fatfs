@@ -1,3 +1,7 @@
 build:
   cmake-ext: True
   kconfig-ext: True
+security:
+  external-references:
+    - cpe:2.3:a:elm-chan:fatfs:r0.16:*:*:*:*:*:*:*
+    - pkg:generic/fatfs@R0.16?download_url=https://elm-chan.org/fsw/ff/arc/ff16.zip
