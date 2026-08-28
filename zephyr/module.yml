@@ -1,3 +1,4 @@
+name: fatfs
 build:
   cmake-ext: True
   kconfig-ext: True
